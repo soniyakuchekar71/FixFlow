@@ -1,0 +1,3 @@
+import { db } from 'hatchable';
+export const access='public';
+export default async function(req,res){try{if(req.method==='GET'){const r=await db.query('SELECT id,name,email,company,created_at FROM customers ORDER BY name');return res.json({customers:r.rows})}if(req.method==='POST'){const b=req.body||{};if(!b.name||!/^\S+@\S+\.\S+$/.test(b.email||''))return res.status(400).json({error:'A customer name and valid email are required.'});const r=await db.query('INSERT INTO customers(name,email,company) VALUES($1,$2,$3) RETURNING *',[b.name,b.email,b.company||null]);return res.status(201).json({customer:r.rows[0]})}res.status(405).json({error:'Method not allowed'})}catch(e){res.status(400).json({error:'Customer operation failed',detail:String(e.message)})}}
