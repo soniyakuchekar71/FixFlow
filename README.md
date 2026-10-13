@@ -42,15 +42,25 @@ The current source does not declare a standalone production environment contract
 
 No automated test suite or package scripts are currently included. Before calling a Vercel migration production-ready, add tests for API validation, duplicate submissions, approval decisions, inventory consistency, workflow failure recovery, and audit event creation.
 
-## Deployment plan: GitHub + Vercel
+## GitHub and Vercel setup
 
-1. Export/download the complete project from the Hatchable project console. Verify that the archive contains `public/`, `api/`, `migrations/`, `seed.sql`, and this README. Do not include real customer data or secrets.
-2. Create an empty GitHub repository named `fixflow` (or another name you choose). Extract the source, inspect the file list and diff, scan for credentials, then commit and push only after reviewing staged files. If importing into a non-empty repository, preserve its history.
-3. Choose a backend strategy before production. Low-risk interim option: host the static frontend on Vercel and retain the Hatchable backend, after configuring the frontend to call the intended API origin and verifying cross-origin requests. Alternative: port the API handlers to a supported runtime and migrate the database to hosted PostgreSQL with schema/data migration and tests.
-4. The existing handlers import `hatchable` and use its database SDK. They are not conventional Express/Fastify handlers. A successful static frontend deployment does not prove that the APIs or database work on Vercel.
-5. Once the frontend API base URL is configurable, import the repository in Vercel. Select the appropriate static/other preset and set the output directory based on the exported layout. Do not route `/api/*` to static HTML.
-6. Configure only environment variables actually used by the selected runtime. Keep database and LLM keys server-side; a public frontend variable may contain only a non-secret API base URL. Use separate Preview and Production values.
-7. Verify the root page, direct route refresh, API connectivity, database health, a complete demo workflow, run persistence after refresh, approval/rejection, audit history, and absence of secrets in public assets.
+The source is tracked in GitHub at [soniyakuchekar71/FixFlow](https://github.com/soniyakuchekar71/FixFlow).
+
+- `public/index.html` is the existing self-contained frontend.
+- `vercel.json` configures Vercel to serve the static page and forward `/api/*` requests to the existing Hatchable API origin.
+- The API handlers in `api/*.js` and SQL files in `migrations/` remain in this repository as the original Hatchable backend source. They import the Hatchable SDK and are not standalone Vercel functions.
+- The database remains managed by Hatchable. This setup does not migrate data or replace the backend.
+- `.gitignore` excludes local environment files, dependencies, and generated deployment files.
+
+## Deployment and verification
+
+1. Import this repository into Vercel at [vercel.com/new](https://vercel.com/new) and deploy with the repository's `vercel.json` configuration.
+2. After deployment, test the root page and each proxied API route. Verify that the Vercel project accepts the static build and external rewrite configuration; adjust the routing config if Vercel reports a configuration/build error.
+3. Verify overview metrics, products, customers, workflow runs, approvals, audit history, and persistence against the existing Hatchable database.
+4. Do not treat a successful static page deploy as proof of backend health. The API proxy requires the existing Hatchable app and its API endpoints to remain available.
+5. Before production use, add automated tests for API validation, duplicate submissions, approval decisions, inventory consistency, workflow failure recovery, and audit event creation.
+
+No Vercel production URL is recorded here until a deployment has been completed and verified.
 
 ## Current deployment status
 
