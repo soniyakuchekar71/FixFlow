@@ -1,31 +1,29 @@
-# FixFlow — AI Business Operations Agent
+# FixFlow — Business Operations Agent
 
-FixFlow is a small-business operations control room for database-backed order processing, invoice preparation, stock reconciliation, workflow execution history, audit events, and transactional email notifications.
+FixFlow is a shared operations workspace for order processing, invoice preparation, stock reconciliation, persisted workflow runs, audit history, and transactional email.
 
-## Architecture
-- Frontend: static HTML, CSS, and JavaScript in `public/index.html`.
-- Backend: Hatchable API handlers in `api/*.js` using the Hatchable SDK.
-- Database: managed PostgreSQL with migrations in `migrations/`.
-- Transactional email: Hatchable's server-side `email.send`; messages use saved customer records and delivery status is tracked.
-- Hosting: Hatchable production app. `vercel.json` proxies API routes to Hatchable when the static frontend is deployed on Vercel.
+## Stack
+- Static frontend: HTML, CSS, JavaScript (`public/index.html`)
+- API handlers: Hatchable server-side functions in `api/`
+- Data: managed PostgreSQL and SQL migrations
+- Email: Hatchable server-side transactional email using saved customer addresses
+- Hosting: Hatchable backend; Vercel static frontend with `/api/*` routed to the Hatchable backend
 
 ## Workflows
-- **Order Processing** validates a customer, checks product stock, creates an order, decrements stock, writes a stock movement, verifies saved state, and attempts an order confirmation email.
-- **Invoice Preparation** locates an order, creates or reuses its invoice, verifies totals, and attempts an invoice email.
-- **Stock Reconciliation** compares a physical count with persisted inventory, records the adjustment, and verifies the saved stock value.
-- Workflow step status, attempts, results, and failures are persisted. Each run requires an idempotency key to prevent accidental duplicate execution.
+- **Order Processing:** requires a saved customer email and product SKU; validates stock, creates an order, updates inventory, writes stock movement history, verifies the result, and attempts an order confirmation.
+- **Invoice Preparation:** finds an existing order, creates/reuses its invoice, and attempts to send an invoice email to the saved customer's address.
+- **Stock Reconciliation:** compares the entered physical count against stored stock and records the adjustment.
+- Workflow runs, steps, audit events, email status, and inventory movement history are persisted.
 
-## Email delivery
-Emails use the saved customer's email address. Invalid/sample domains such as `.example`, `.test`, and `.invalid` are skipped to avoid emailing placeholders. Delivery can be restricted by Hatchable recipient allowlists, daily caps, or sender-domain verification. A request or draft is not proof of successful delivery; check the saved email status.
+## Setup
+1. Deploy the backend and migrations through Hatchable.
+2. Deploy the static frontend to Vercel with `vercel.json` routing `/api/*` to the live Hatchable backend.
+3. Add real product and customer records under Business Data.
+4. For order processing, enter the email address matching a saved customer. The application will not choose an arbitrary first customer.
+5. Verify email provider policies, recipient allowlists, and sender-domain configuration before expecting external delivery.
 
-## Database
-Migration `007_reliable_operations.sql` adds workflow idempotency, `stock_movements` for traceable inventory changes, and `email_outbox` for email attempts, statuses, provider message IDs, and errors. Replace synthetic starter customer details with authorized real records before production use.
-
-## Development and deployment
-The Hatchable backend imports `hatchable` and is not a standalone Vercel Node function. Deploy the backend to Hatchable first; Vercel routes `/api/*` to the Hatchable URL through `vercel.json`. Configure Vercel to build the static frontend from the repository root and ensure API routing points to the active Hatchable deployment.
-
-## Security and next steps
-- Do not commit secrets or provider credentials.
-- Never send transactional email without a valid address and appropriate permission.
-- Verify order/inventory results and audit logs after changes.
-- For production commerce, add authenticated staff identities, role-based authorization, database transactions around inventory/order writes, invoice PDF generation, and automated integration tests.
+## Email and production notes
+- Placeholder domains such as `.example`, `.test`, `.invalid`, and `.localhost` are rejected for delivery.
+- A successful workflow does not guarantee email delivery; inspect the email status and provider response.
+- The UI and API currently form a shared workspace. Before using it with sensitive or real customer data on a public internet URL, add authenticated user accounts, role-based permissions, rate limiting, and stronger transactional locking around concurrent inventory operations.
+- Never commit email credentials or other secrets.
