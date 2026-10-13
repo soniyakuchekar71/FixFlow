@@ -4,12 +4,24 @@
     {
       "src": "public/index.html",
       "use": "@vercel/static"
+    },
+    {
+      "src": "public/login.html",
+      "use": "@vercel/static"
     }
   ],
   "routes": [
     {
+      "src": "^/__hatchable/(.*)$",
+      "dest": "https://fixflow-ai-s9qr.hatchable.site/__hatchable/$1"
+    },
+    {
       "src": "^/api/(.*)$",
       "dest": "https://fixflow-ai-s9qr.hatchable.site/api/$1"
+    },
+    {
+      "src": "^/login/?$",
+      "dest": "/public/login.html"
     },
     {
       "src": "^/$",
