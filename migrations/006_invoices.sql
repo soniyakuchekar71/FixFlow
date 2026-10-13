@@ -1,0 +1,1 @@
+CREATE TABLE IF NOT EXISTS invoices (id UUID PRIMARY KEY DEFAULT gen_random_uuid(), invoice_no TEXT NOT NULL UNIQUE, order_id UUID NOT NULL UNIQUE REFERENCES orders(id), customer_name TEXT NOT NULL, total NUMERIC(12,2) NOT NULL CHECK(total >= 0), status TEXT NOT NULL DEFAULT 'Draft', created_at TIMESTAMPTZ NOT NULL DEFAULT now());
