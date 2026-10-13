@@ -1,0 +1,3 @@
+INSERT INTO customers (name,email,company) SELECT 'Maya Sharma','maya@northstar.example','Northstar Supply' WHERE NOT EXISTS (SELECT 1 FROM customers WHERE email='maya@northstar.example');
+INSERT INTO products (sku,name,price,stock) SELECT 'SKU-104','Thermal Labels',12.50,240 WHERE NOT EXISTS (SELECT 1 FROM products WHERE sku='SKU-104');
+INSERT INTO products (sku,name,price,stock) SELECT 'SKU-205','Shipping Cartons',2.75,85 WHERE NOT EXISTS (SELECT 1 FROM products WHERE sku='SKU-205');
