@@ -1,29 +1,29 @@
-# FixFlow — Business Operations Agent
+# FixFlow — AI Business Operations Agent
 
-FixFlow is a shared operations workspace for order processing, invoice preparation, stock reconciliation, persisted workflow runs, audit history, and transactional email.
+FixFlow is a web-based operations workspace for order processing, invoice preparation, inventory reconciliation, workflow history, and transactional email.
+
+## Live app
+- Vercel: https://fixflow-olive.vercel.app
+- Hatchable backend: https://fixflow-ai-s9qr.hatchable.site
 
 ## Stack
-- Static frontend: HTML, CSS, JavaScript (`public/index.html`)
-- API handlers: Hatchable server-side functions in `api/`
-- Data: managed PostgreSQL and SQL migrations
-- Email: Hatchable server-side transactional email using saved customer addresses
-- Hosting: Hatchable backend; Vercel static frontend with `/api/*` routed to the Hatchable backend
+- Frontend: static HTML/CSS/JavaScript in `public/`
+- Backend: Hatchable API functions in `api/`
+- Database: managed PostgreSQL and SQL migrations
+- Authentication: Hatchable end-user email-code sign-in
+- Email: Hatchable transactional email provider
+
+## User access
+New visitors can open `/login`, enter their email, and verify a one-time code. A customer profile is created automatically from the verified account email. Business API routes require a signed-in end user. The Vercel routing configuration proxies `/__hatchable/auth.js` and `/api/*` through the Vercel hostname so auth cookies and API calls share the same origin.
 
 ## Workflows
-- **Order Processing:** requires a saved customer email and product SKU; validates stock, creates an order, updates inventory, writes stock movement history, verifies the result, and attempts an order confirmation.
-- **Invoice Preparation:** finds an existing order, creates/reuses its invoice, and attempts to send an invoice email to the saved customer's address.
-- **Stock Reconciliation:** compares the entered physical count against stored stock and records the adjustment.
-- Workflow runs, steps, audit events, email status, and inventory movement history are persisted.
+- Order Processing validates the signed-in customer's saved email, checks stock, creates an order, updates inventory, and attempts an order confirmation.
+- Invoice Preparation finds an existing order, creates/reuses its invoice, and attempts an invoice email.
+- Stock Reconciliation updates inventory from a physical count and writes movement history.
+- Workflow steps, audit events, email attempts, and inventory movements are persisted.
 
-## Setup
-1. Deploy the backend and migrations through Hatchable.
-2. Deploy the static frontend to Vercel with `vercel.json` routing `/api/*` to the live Hatchable backend.
-3. Add real product and customer records under Business Data.
-4. For order processing, enter the email address matching a saved customer. The application will not choose an arbitrary first customer.
-5. Verify email provider policies, recipient allowlists, and sender-domain configuration before expecting external delivery.
+## Email delivery
+The app includes a **Send test email** action that sends only to the currently signed-in user's own email address. Check inbox and spam to confirm actual arrival. A provider-accepted response is not proof of inbox delivery. Hatchable's free tier can restrict recipients to an allowlist and has daily send limits; unrestricted external delivery may require the appropriate plan and verified sender domain in the Hatchable console. No email credentials are committed to this repository.
 
-## Email and production notes
-- Placeholder domains such as `.example`, `.test`, `.invalid`, and `.localhost` are rejected for delivery.
-- A successful workflow does not guarantee email delivery; inspect the email status and provider response.
-- The UI and API currently form a shared workspace. Before using it with sensitive or real customer data on a public internet URL, add authenticated user accounts, role-based permissions, rate limiting, and stronger transactional locking around concurrent inventory operations.
-- Never commit email credentials or other secrets.
+## Important production limitation
+Authentication is enabled, but this version is a shared business workspace: authenticated users can access shared business records. Do not use it for confidential customer/business data with unrestricted public sign-up until organization membership/roles and tenant-scoped data access are implemented. Inventory operations also need database transactions/locking and automated integration tests before high-volume production use.
