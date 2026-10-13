@@ -1,0 +1,3 @@
+import { db } from 'hatchable';
+export const access = 'public';
+export default async function(req,res){try{const [runs,orders,products,approvals]=await Promise.all([db.query('SELECT status, count(*)::int AS count FROM workflow_runs GROUP BY status'),db.query('SELECT count(*)::int AS count FROM orders'),db.query('SELECT count(*)::int AS count FROM products'),db.query("SELECT count(*)::int AS count FROM workflow_runs WHERE status='Waiting for Approval'")]);res.json({runs:runs.rows,orders:orders.rows[0]?.count||0,products:products.rows[0]?.count||0,pendingApprovals:approvals.rows[0]?.count||0,mode:'Demo Mode'});}catch(e){res.status(500).json({error:'Could not load overview',detail:String(e.message)})}}
