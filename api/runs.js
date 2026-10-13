@@ -226,7 +226,7 @@ export default async function(req, res) {
         : ['Validate SKU and physical count', 'Apply inventory reconciliation', 'Verify persisted stock'];
     const steps = stepNames.map((name, i) => ({ id: i + 1, name, status: 'Pending', attempt: 0, verified: false }));
     const created = await db.query(
-      'INSERT INTO workflow_runs(workflow,status,input,steps,idempotency_key) VALUES($1,$2,$3::jsonb,$4::jsonb,$5) ON CONFLICT(idempotency_key) DO NOTHING RETURNING *',
+      'INSERT INTO workflow_runs(workflow,status,input,steps,idempotency_key) VALUES($1,$2,$3::jsonb,$4::jsonb,$5) ON CONFLICT(idempotency_key) WHERE idempotency_key IS NOT NULL DO NOTHING RETURNING *',
       [body.workflow, 'Running', asJson(input), asJson(steps), key]
     );
     if (!created.rows.length) {
