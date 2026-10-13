@@ -87,7 +87,7 @@ async function executeOrder(run, input) {
       ? await db.query('SELECT id,name,email,company FROM customers WHERE id=$1 LIMIT 1', [input.customerId])
       : input.customerEmail
         ? await db.query('SELECT id,name,email,company FROM customers WHERE lower(email)=lower($1) LIMIT 1', [input.customerEmail])
-        : await db.query('SELECT id,name,email,company FROM customers ORDER BY created_at ASC LIMIT 1');
+        : await db.query('SELECT id,name,email,company FROM customers WHERE false');
     if (!q.rows.length) throw new Error('Customer not found. Add a customer record or select an existing customer.');
     return q.rows[0];
   });
