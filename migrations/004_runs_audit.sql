@@ -1,0 +1,1 @@
+CREATE TABLE IF NOT EXISTS workflow_runs (id UUID PRIMARY KEY DEFAULT gen_random_uuid(), workflow TEXT NOT NULL, status TEXT NOT NULL DEFAULT 'Pending', input JSONB NOT NULL DEFAULT '{}'::jsonb, steps JSONB NOT NULL DEFAULT '[]'::jsonb, result JSONB NOT NULL DEFAULT '{}'::jsonb, created_at TIMESTAMPTZ NOT NULL DEFAULT now(), updated_at TIMESTAMPTZ NOT NULL DEFAULT now());
