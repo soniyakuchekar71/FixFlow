@@ -1,5 +1,5 @@
 import { db, email } from 'hatchable';
-export const access = 'public';
+export const access = 'user';
 
 const WORKFLOWS = ['Order Processing', 'Invoice Preparation', 'Stock Reconciliation'];
 const EMAIL_BLOCKLIST = ['.example', '.test', '.invalid', '.localhost'];
