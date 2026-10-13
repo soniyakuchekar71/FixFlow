@@ -1,0 +1,6 @@
+ALTER TABLE workflow_runs ADD COLUMN IF NOT EXISTS idempotency_key TEXT;
+CREATE UNIQUE INDEX IF NOT EXISTS workflow_runs_idempotency_key_key ON workflow_runs(idempotency_key) WHERE idempotency_key IS NOT NULL;
+CREATE TABLE IF NOT EXISTS stock_movements (id UUID PRIMARY KEY DEFAULT gen_random_uuid(), product_id UUID NOT NULL REFERENCES products(id), sku TEXT NOT NULL, quantity_delta INTEGER NOT NULL, quantity_before INTEGER NOT NULL, quantity_after INTEGER NOT NULL, reason TEXT NOT NULL, reference_type TEXT NOT NULL, reference_id TEXT NOT NULL, created_by TEXT NOT NULL DEFAULT 'FixFlow engine', created_at TIMESTAMPTZ NOT NULL DEFAULT now());
+CREATE TABLE IF NOT EXISTS email_outbox (id UUID PRIMARY KEY DEFAULT gen_random_uuid(), workflow_run_id UUID NOT NULL UNIQUE REFERENCES workflow_runs(id), recipient TEXT NOT NULL, subject TEXT NOT NULL, status TEXT NOT NULL DEFAULT 'Pending', provider_message_id TEXT, error TEXT, attempts INTEGER NOT NULL DEFAULT 0, sent_at TIMESTAMPTZ, created_at TIMESTAMPTZ NOT NULL DEFAULT now());
+CREATE INDEX IF NOT EXISTS stock_movements_sku_created_at_idx ON stock_movements(sku, created_at DESC);
+CREATE INDEX IF NOT EXISTS email_outbox_status_created_at_idx ON email_outbox(status, created_at DESC);
