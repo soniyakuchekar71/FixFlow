@@ -1,159 +1,117 @@
 # FixFlow — AI Business Operations Agent
 
-FixFlow is a web-based business operations platform designed to simplify routine workflows such as order processing, invoice preparation, inventory reconciliation, and workflow monitoring.
-
-It combines a centralized operations dashboard, persistent business data, authenticated user access, workflow execution, audit tracking, and transactional email integration to help businesses manage day-to-day operations more efficiently.
+FixFlow is a small-business operations workspace for order processing, invoice preparation, inventory reconciliation, and workflow monitoring. The latest hosted Hatchable build adds an AI Operations Copilot that can review current inventory and recent workflow outcomes to recommend next steps in natural language.
 
 ## Key Features
 
-- **Operations Dashboard** — Monitor workflow activity, orders, inventory, and operational status.
-- **Order Processing** — Process orders using saved customer and product records, with inventory validation.
-- **Invoice Preparation** — Generate or reuse invoices associated with existing orders.
-- **Stock Reconciliation** — Compare physical stock counts with recorded inventory and track adjustments.
-- **Workflow Management** — Execute workflows and maintain workflow history.
-- **Audit Trail** — Record operational events for traceability.
-- **User Authentication** — Email-based, one-time-code sign-in and automatic customer profile creation.
-- **Transactional Email Integration** — Send workflow-related emails and test email delivery.
-- **Persistent Storage** — Store customers, products, orders, invoices, workflow runs, and inventory records in PostgreSQL.
+- **Operations Dashboard** — Monitor workflow activity and operational status.
+- **Order Processing** — Validate customer records and inventory, create orders, and verify stock updates.
+- **Invoice Preparation** — Create or reuse invoices associated with existing orders.
+- **Stock Reconciliation** — Compare physical counts with recorded inventory and log adjustments.
+- **Workflow History** — Inspect step-level outcomes, verification states, and errors.
+- **Audit Trail** — Track operational events for traceability.
+- **Email-Code Authentication** — Passwordless sign-in with protected end-user API routes.
+- **AI Operations Copilot (hosted Hatchable build)** — An authenticated LLM endpoint reviews inventory and recent workflow outcomes, then recommends safe next steps. It does not execute business actions automatically.
+- **Email Outbox Tracking** — Record send attempts and failures for workflow notifications.
+- **Persistent Storage** — PostgreSQL records for products, customers, orders, invoices, runs, and inventory movements.
 
 ## Technology Stack
 
 | Component | Technology |
 |---|---|
 | Frontend | HTML, CSS, JavaScript |
-| Backend | Server-side API functions |
+| Backend | Hatchable server-side API functions |
 | Database | PostgreSQL |
 | Authentication | Hatchable email-code authentication |
+| AI | Hatchable AI SDK / configurable LLM provider |
 | Email | Hatchable transactional email service |
-| Hosting | Vercel and Hatchable |
+| Hosting | Hatchable hosted app; Vercel URL maintained separately |
 | Version Control | Git and GitHub |
 
-## System Architecture
+## Architecture
 
 ```text
-                  User
-                   |
-                   v
-          FixFlow Web Interface
-             (Vercel)
-                   |
-                   v
-          Authenticated API
-             (Hatchable)
-                   |
-          +--------+--------+
-          |        |        |
-          v        v        v
-      PostgreSQL  Workflows  Email Service
-          |        |        |
-          v        v        v
-      Business   Audit &   Customer
-       Records   History   Notifications
+User
+ |
+ v
+FixFlow Web Interface
+ |
+ v
+Authenticated API routes
+ |----------|------------|
+ v          v            v
+PostgreSQL  AI Copilot   Email provider
+ |          |            |
+ v          v            v
+Business    Suggested    Delivery may be
+records     next steps   provider-restricted
 ```
 
 ## Core Workflows
 
-### 1. Order Processing
-- Identify the signed-in customer.
-- Validate the selected product and available stock.
-- Create the order and update inventory.
-- Record workflow activity and attempt an order confirmation email.
+### Order Processing
+1. Validate the saved customer and product.
+2. Check available stock and quantity.
+3. Create an order and reserve inventory.
+4. Verify persisted order and stock values.
+5. Attempt an order-confirmation email and record the result.
 
-### 2. Invoice Preparation
-- Locate an existing order.
-- Create or reuse its invoice.
-- Attempt to send the invoice notification to the associated customer.
+### Invoice Preparation
+1. Locate an existing order.
+2. Create or reuse the invoice record.
+3. Attempt invoice notification.
+4. Verify the saved invoice.
 
-### 3. Stock Reconciliation
-- Compare recorded inventory with the physical stock count.
-- Calculate the required adjustment.
-- Update inventory and record the change for auditing.
+### Stock Reconciliation
+1. Validate the SKU and physical stock count.
+2. Calculate the adjustment.
+3. Persist the adjustment and inventory movement.
+4. Verify the resulting stock.
 
-### 4. User Registration and Authentication
-- Allow users to sign in using their email address.
-- Verify the one-time code.
-- Create a customer profile when one does not exist.
-- Require authentication for protected business APIs.
+### AI Operations Copilot
+1. Accept a short natural-language operations question.
+2. Read a bounded snapshot of current products and recent workflow runs.
+3. Ask the configured LLM to produce a grounded recommendation.
+4. Display the answer and context counts in the dashboard.
+5. Keep execution under existing deterministic workflows and validation; the Copilot itself makes no database changes.
 
 ## Project Structure
 
 ```text
 FixFlow/
-├── api/
-│   ├── approvals.js
-│   ├── audit.js
-│   ├── customers.js
-│   ├── email-test.js
-│   ├── overview.js
-│   ├── products.js
-│   ├── profile.js
-│   └── runs.js
-├── migrations/
-│   ├── 001_core.sql
-│   ├── 002_*.sql
-│   └── ...
+├── api/                    # API handlers in the repository/runtime
+├── migrations/             # SQL migrations
 ├── public/
 │   ├── index.html
 │   └── login.html
-├── seed.sql
-├── hatchable.toml
+├── seed.sql                # Synthetic demo data
+├── hatchable.toml          # Hosted app/auth/AI configuration
 ├── vercel.json
 └── README.md
 ```
 
-*The migration filenames shown with `*` are abbreviated for readability.*
+## Setup and Deployment
 
-## Getting Started
+The hosted backend uses Hatchable-specific APIs and a managed PostgreSQL database. These handlers are not generic Express functions and should not be assumed to run unchanged in a standalone Node.js runtime.
 
-### Prerequisites
-- A GitHub account
-- A Vercel account
-- A Hatchable project with backend and database access
-- A verified email sender domain for unrestricted external email delivery
+1. Review the project source and migrations before deploying.
+2. Configure Hatchable authentication and database.
+3. Configure an AI provider in Hatchable Settings to enable Copilot model responses.
+4. Configure a verified sender domain or provider access for unrestricted external email.
+5. Verify sign-in, protected API access, each workflow, run persistence, and email behavior in a real browser.
 
-### Deployment
-1. Clone the repository.
-2. Configure the Hatchable backend and PostgreSQL database.
-3. Apply the required database migrations and populate valid product and customer records.
-4. Configure authentication and transactional email settings in Hatchable.
-5. Import the GitHub repository into Vercel.
-6. Verify that `vercel.json` routes API and authentication requests to the correct backend.
-7. Test registration, protected API access, each workflow, and email delivery.
+## Known Limitations
 
-## Email Delivery Status
-
-FixFlow includes a transactional email endpoint for testing outbound email. However, external email delivery depends on the provider's account restrictions and verified sender configuration.
-
-The current Hatchable Free plan has restricted external-recipient delivery. Upgrade eligibility, sender-domain verification, and a successful real-inbox test must be confirmed before claiming unrestricted email delivery is operational.
-
-## Security and Production Readiness
-
-Before using FixFlow for real business operations, the following should be completed and tested:
-
-- Organization-based access controls and tenant isolation
-- Role-based permissions for customers and staff
-- Database transactions and concurrency protection for inventory updates
-- Email delivery monitoring and retry handling
-- API rate limiting and input validation
-- Automated tests for workflow failures and recovery
-- Verified sender domain and successful external inbox delivery
-
-Authentication alone does not guarantee that users can access only their own organization's data. Tenant isolation is essential before storing confidential business information.
-
-## Future Enhancements
-
-- AI-assisted workflow recommendations
-- Intelligent inventory forecasting
-- Automated exception detection
-- Workflow retry and recovery orchestration
-- Multi-organization workspaces
-- Email delivery status tracking
-- Advanced operational analytics
+- **AI provider setup:** the Copilot UI and authenticated endpoint are deployed, but a live model response is not yet verified. The current account needs an AI provider/API key configured in Hatchable Settings.
+- **External email:** provider testing returned a 403 on the free plan for an unapproved external recipient. Upgrade/verified sender setup and a real inbox test are still required; do not claim unrestricted email delivery yet.
+- **Multi-user isolation:** authentication is not the same as tenant isolation. Some business records are currently shared across signed-in accounts. Do not use the current MVP for confidential business data until workspace-level data isolation and role checks are implemented and tested.
+- **Production hardening:** add automated tests, role permissions, transactional/concurrency tests, rate limits, monitoring, and reliable retry/recovery before production use.
 
 ## Live Project
 
 - **GitHub:** https://github.com/soniyakuchekar71/FixFlow
-- **Vercel:** https://fixflow-olive.vercel.app
+- **Hatchable hosted build (latest):** https://fixflow-ai-s9qr.hatchable.site
+- **Vercel deployment (separate deployment):** https://fixflow-olive.vercel.app
 
 ## Author
 
@@ -165,4 +123,4 @@ GitHub: https://github.com/soniyakuchekar71
 
 ---
 
-FixFlow aims to make everyday business operations more traceable, reliable, and easier to manage through a unified operations workspace.
+FixFlow aims to make business operations more traceable and reliable by combining deterministic workflows, verified data changes, audit history, and AI-assisted recommendations.
